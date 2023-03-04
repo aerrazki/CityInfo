@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using CityInfo.API.Models;
+using Microsoft.AspNetCore.JsonPatch;
+
 namespace CityInfo.API.Controllers
 {
     [Route("api/cities/{cityId}/pointsofinterest")]
@@ -32,9 +34,10 @@ namespace CityInfo.API.Controllers
         }
 
         [HttpPost]
-        public ActionResult<PointOfInterestDto> CreatePointOfInterest(int cityId, /*This Attribute is not necessary since the It's an ApiController*/[FromBody] PointOfInterestForCreationDto pointOfInterest)
+        public ActionResult<PointOfInterestDto> CreatePointOfInterest(int cityId, /*This Attribute is not necessary since the It's an ApiController*/ [FromBody] PointOfInterestForCreationDto pointOfInterest)
         {
-            if (!ModelState.IsValid) return BadRequest();
+            //Optional, managed by APIRequired
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
             if (city is null) return NotFound();
@@ -71,6 +74,37 @@ namespace CityInfo.API.Controllers
             _pointOfInterest.Description = pointOfInterest.Description; 
 
             return NoContent();
+        }
+
+        [HttpPatch("{pointofinterestId}")]
+        public ActionResult PartiallyUpdatePointOfInterest(int cityId, int pointOfInterestId, JsonPatchDocument<PointOfInterestForUpdateDto> patchDocument /*Patch document is the list of operations we want to execute on our point of interest*/)
+        {
+            //find the city
+            var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
+            if (city is null) return NotFound();
+
+            //find the point of interest
+            var _pointOfInterest = city.PointsOfInterest.FirstOrDefault(p => p.Id == pointOfInterestId);
+            if (_pointOfInterest is null) return NotFound();
+
+            var _pointOfInterestToPatch = new PointOfInterestForUpdateDto() {Name = _pointOfInterest.Name, Description = _pointOfInterest.Description };
+
+            patchDocument.ApplyTo(_pointOfInterestToPatch,ModelState);
+
+            /*Verifying the ModelState after the patch application
+             * take note that the input model is not the PointOfInterestForUpdateDto it is the JsonPatchDocument
+             * so as long as the jsonpatch doc is valid according to the RFC standards then the model is valid
+             */
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            //Verify the PointOfInterestForUpdateDto input validity after applying the patch document
+            if (!TryValidateModel(_pointOfInterestToPatch))
+                return BadRequest(ModelState);
+            _pointOfInterest.Name = _pointOfInterestToPatch.Name;
+            _pointOfInterest.Description = _pointOfInterestToPatch.Description;
+
+            return NoContent();
+
         }
     }
 }

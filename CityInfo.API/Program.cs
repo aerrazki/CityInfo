@@ -8,6 +8,8 @@ builder.Services.AddControllers(options =>
 {
     options.ReturnHttpNotAcceptable = true;
 })
+//Contains input and ouput formatter for json and jsonpatch (standard of operations)
+.AddNewtonsoftJson()
 //Add xml support beside Json
 .AddXmlDataContractSerializerFormatters();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
