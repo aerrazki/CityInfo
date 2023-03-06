@@ -1,13 +1,31 @@
+using CityInfo.API;
+using CityInfo.API.Services;
+using CityInfo.API.Services.Interfaces;
 using Microsoft.AspNetCore.StaticFiles;
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .WriteTo.Console()
+    .WriteTo.File("logs/cityinfo.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+/*Default Logger before adding Serilog*/
+//Clear all providers (console, file, etc...)
+//builder.Logging.ClearProviders();
+//Only at console this far
+//builder.Logging.AddConsole();
 
+builder.Host.UseSerilog();
+
+// Add services to the container
 builder.Services.AddControllers(options =>
 {
     options.ReturnHttpNotAcceptable = true;
 })
+
 //Contains input and ouput formatter for json and jsonpatch (standard of operations)
 .AddNewtonsoftJson()
 //Add xml support beside Json
@@ -17,6 +35,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<FileExtensionContentTypeProvider>();
 
+#if DEBUG
+builder.Services.AddTransient<IMailService, LocalMailService>();
+#else
+builder.Services.AddTransient<IMailService, CloudMailService>();
+#endif
+
+builder.Services.AddSingleton<CitiesDataStore>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -32,10 +57,10 @@ app.UseRouting();
 
 app.UseAuthorization();
 
-app.UseEndpoints(endpoints => { 
+app.UseEndpoints(endpoints =>
+{
 
     endpoints.MapControllers();
 });
 
 app.Run();
- 
