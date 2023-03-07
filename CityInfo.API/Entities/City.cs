@@ -1,0 +1,28 @@
+﻿using CityInfo.API.Models;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace CityInfo.API.Entities
+{
+    public class City
+    {
+        [Key]
+        //Make the PK Key Id generated automatically when city is added (identity)
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
+
+        [Required]
+        [MaxLength(50)]
+        public string Name { get; set; }
+
+        [MaxLength(200)]
+        public string? Description { get; set; }
+
+        public ICollection<PointOfInterestDto> PointsOfInterest { get; set; } = new List<PointOfInterestDto>();
+
+        public City(string name)
+        {
+            Name = name;
+        }
+    }
+}

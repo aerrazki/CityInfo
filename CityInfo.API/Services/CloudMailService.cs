@@ -3,9 +3,14 @@ namespace CityInfo.API.Services
 {
     public class CloudMailService : IMailService
     {
-        private string _mailTo = "ok@company.com";
-        public string _mailFrom = "noreply@mycompany.com";
+        private readonly string _mailTo = string.Empty;
+        private readonly string _mailFrom = string.Empty;
 
+        public CloudMailService(IConfiguration configuration)
+        {
+            _mailFrom = configuration["mailSettings:mailFromAddress"];
+            _mailTo = configuration["mailSettings:mailToAddress"];
+        }
         public void Send(string subject, string message)
         {
             if (!(string.IsNullOrEmpty(subject) || string.IsNullOrEmpty(message)))
