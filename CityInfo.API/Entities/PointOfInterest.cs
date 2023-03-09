@@ -24,5 +24,7 @@ namespace CityInfo.API.Entities
         {
             Name = name;
         }
+
+ 
     }
 }
