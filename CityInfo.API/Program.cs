@@ -67,6 +67,17 @@ builder.Services.AddAuthentication("Bearer").AddJwtBearer(options =>
     }
     );
 
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("MustBeFromParis", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("city", "paris");
+    });
+}
+);
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -83,6 +94,7 @@ app.UseRouting();
 app.UseAuthentication();
 
 app.UseAuthorization();
+
 
 app.UseEndpoints(endpoints =>
 {

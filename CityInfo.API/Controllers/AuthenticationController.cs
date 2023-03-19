@@ -82,7 +82,7 @@ namespace CityInfo.API.Controllers
         private CityInfoUser ValidateUserCredentials(string? userName, string? password)
         {
             //fake validation
-            var user = new CityInfoUser(1, "legoman", "ayoub", "errazki", "fes");
+            var user = new CityInfoUser(1, "legoman", "ayoub", "errazki", "paris");
             return user;
         }
     }
